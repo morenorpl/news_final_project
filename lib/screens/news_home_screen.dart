@@ -10,38 +10,33 @@ class NewsHomeScreen extends StatelessWidget {
   Widget categoryButton(String label, String type) {
     final newsController = Get.find<NewsController>();
 
-    return Obx(() => ElevatedButton( 
+    return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
-        foregroundColor: newsController.selectedCategory.value == type 
-            ? Colors.orangeAccent 
-            : Colors.grey, 
+        // The foreground color also depends on the controller's state.
+        foregroundColor: Colors.orangeAccent,
         textStyle: TextStyle(
           fontWeight: newsController.selectedCategory.value == type
               ? FontWeight.w800
               : FontWeight.w400,
         ),
         elevation: newsController.selectedCategory.value == type ? 0 : 3,
-        side: newsController.selectedCategory.value == type 
-            ? const BorderSide(color: Colors.orangeAccent, width: 2) 
-            : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       onPressed: () {
         newsController.changeCategory(type);
       },
       child: Text(label),
-    ));
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final newsController = Get.put(NewsController()); 
-
+    final newsController = Get.find<NewsController>();
     return Scaffold(
       appBar: AppBar(
         title: RichText(
-          text: const TextSpan(
+          text: TextSpan(
             children: <TextSpan>[
               TextSpan(
                 text: 'Kabari',
@@ -68,9 +63,9 @@ class NewsHomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              Get.to(() => const NewsSearchScreen());
+              Get.to(NewsSearchScreen());
             },
-            icon: const Icon(Icons.search_rounded),
+            icon: Icon(Icons.search_rounded),
           ),
         ],
       ),
@@ -80,59 +75,55 @@ class NewsHomeScreen extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                children: [
-                  categoryButton('Semua', 'semua'),
-                  const SizedBox(width: 10),
-                  categoryButton('National', 'nasional'),
-                  const SizedBox(width: 10),
-                  categoryButton('International', 'internasional'),
-                  const SizedBox(width: 10),
-                  categoryButton('Ekonomi', 'ekonomi'),
-                  const SizedBox(width: 10),
-                  categoryButton('Olahraga', 'olahraga'),
-                  const SizedBox(width: 10),
-                  categoryButton('Teknologi', 'teknologi'),
-                  const SizedBox(width: 10),
-                  categoryButton('Hiburan', 'hiburan'),
-                  const SizedBox(width: 10),
-                  categoryButton('Gaya-hidup', 'gaya-hidup'),
-                ],
-              ),
+              child: Obx(() {
+                return Row(
+                  spacing: 10,
+                  children: [
+                    categoryButton('Semua', 'semua'),
+                    categoryButton('National', 'nasional'),
+                    categoryButton('International', 'internasional'),
+                    categoryButton('Ekonomi', 'ekonomi'),
+                    categoryButton('Olahraga', 'olahraga'),
+                    categoryButton('Teknologi', 'teknologi'),
+                    categoryButton('Hiburan', 'hiburan'),
+                    categoryButton('Gaya-hidup', 'gaya-hidup'),
+                  ],
+                );
+              }),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           Expanded(
             child: Obx(() {
+              final listToDisplay = newsController.filteredNews;
               if (newsController.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child: CircularProgressIndicator());
               }
 
-              final listToDisplay = newsController.filteredNews;
-              
               if (listToDisplay.isEmpty) {
-                return const Center(child: Text('No news found'));
+                return Center(child: Text('no news found'));
               }
 
               return ListView.separated(
                 itemCount: listToDisplay.length,
                 itemBuilder: (context, index) {
                   final item = listToDisplay[index];
-                  final imageUrl = item['image']?['small'] ?? 'https://via.placeholder.com/150';
-
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: InkWell(
                       onTap: () {
-                        Get.to(() => NewsDetailScreen(newsDetail: item));
+                        Get.to(NewsDetailScreen(newsDetail: item));
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(15),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
                               color: Color(0x2020200D),
                               spreadRadius: 3,
@@ -152,70 +143,63 @@ class NewsHomeScreen extends StatelessWidget {
                                 color: Colors.grey,
                                 borderRadius: BorderRadius.circular(10),
                                 image: DecorationImage(
-                                  image: NetworkImage(imageUrl),
+                                  image: NetworkImage(item['image']['small']),
                                   fit: BoxFit.cover,
-                                  onError: (exception, stackTrace) {
-                                    // Handle jika gambar error
-                                  },
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: SizedBox(
-                                height: 120,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        item['title'] ?? 'No Title',
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 16, // Ukuran font disesuaikan agar muat
-                                          fontWeight: FontWeight.w700,
-                                          height: 1.2,
-                                        ),
+                            SizedBox(width: 20),
+                            SizedBox(
+                              width: 220,
+                              height: 120,
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item['title'],
+                                      maxLines: 3,
+
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.2,
                                       ),
                                     ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          // Format tanggal sederhana atau default
-                                          (item['isoDate'] as String?)?.substring(0, 10) ?? '',
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        Obx(() {
-                                          final isBookMarked = newsController.isBookMark(item);
-                                          return GestureDetector(
-                                            onTap: () {
-                                              if (isBookMarked) {
-                                                newsController.removeBookMark(item);
-                                              } else {
-                                                newsController.addBookMark(item);
-                                              }
-                                            },
-                                            child: Icon(
-                                              isBookMarked
-                                                  ? Icons.bookmark_rounded
-                                                  : Icons.bookmark_border_rounded,
-                                              color: isBookMarked ? Colors.orange : Colors.grey,
-                                            ),
-                                          );
-                                        }),
-                                      ],
+                                  ),
+                                  Text(
+                                    item['isoDate'],
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
+                            ),
+                            Expanded(
+                              child: Obx(() {
+                                final isBookMarked = newsController.isBookMark(
+                                  item,
+                                );
+                                return IconButton(
+                                  onPressed: () {
+                                    if (isBookMarked) {
+                                      newsController.removeBookMark(item);
+                                    } else {
+                                      newsController.addBookMark(item);
+                                    }
+                                  },
+                                  icon: isBookMarked
+                                      ? Icon(Icons.bookmark_rounded)
+                                      : Icon(Icons.bookmark_border_rounded),
+                                );
+                              }),
                             ),
                           ],
                         ),
@@ -224,7 +208,7 @@ class NewsHomeScreen extends StatelessWidget {
                   );
                 },
                 separatorBuilder: (BuildContext context, int index) {
-                  return const SizedBox(height: 20);
+                  return SizedBox(height: 20);
                 },
               );
             }),

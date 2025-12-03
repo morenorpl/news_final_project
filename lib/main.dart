@@ -1,47 +1,35 @@
-import 'package:news_app_with_getx/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:camera/camera.dart';
-import 'firebase_options.dart';
+import 'package:get/get.dart';
+import 'package:news_app_with_getx/controller/news_controller.dart';
+import 'package:news_app_with_getx/screens/news_home_screen.dart';
 
+void main() {
+  Get.put(NewsController());
 
-import 'package:news_app_with_getx/screens/splash_screen.dart'; 
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  await Permission.camera.request();
-  final cameras = await availableCameras();
-  
-  final firstCamera = cameras.isNotEmpty ? cameras.first : null;
-
-  if (firstCamera == null) {
-    debugPrint("Tidak ada kamera yang ditemukan!");
-  }
-
-  runApp(MyApp(camera: firstCamera!));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final CameraDescription camera;
-  
-  const MyApp({super.key, required this.camera});
+  const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Auth Final Project',
+    return GetMaterialApp(
+      title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xff0B0C0E),
+          foregroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+        ),
+        scaffoldBackgroundColor: Color(0xff0B0C0E),
+        primaryColor: Colors.black,
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff0B0C0E)),
+        fontFamily: 'Poppins',
       ),
-      home: const SplashScreen(), 
+      home: NewsHomeScreen(),
     );
   }
 }
